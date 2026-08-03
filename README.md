@@ -17,6 +17,10 @@ This repo contains the files needed to set up a Windows computer for SO-ARM101 /
 - `soarm101_issue_log.md`
   - Running log of problems found while setting this up.
 
+- `calibration/`
+  - Bundled calibration files for the current `my_follower` and `my_leader` arm set.
+  - The setup script copies these into LeRobot's user calibration folder.
+
 ## New Computer Setup
 
 1. Install Python 3.12.
@@ -47,6 +51,12 @@ cd $env:USERPROFILE\Desktop\so-arm101
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
+```
+
+   This installs LeRobot and copies the bundled calibration files to:
+
+```text
+C:\Users\<your-user-name>\.cache\huggingface\lerobot\calibration
 ```
 
 5. Connect both SO-ARM101 arms.
@@ -87,3 +97,5 @@ powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 - Motor setup and calibration must be completed before teleoperation.
 - COM ports can change between computers or USB ports.
 - Keep the robot workspace clear before running motion programs.
+- If LeRobot asks whether to use the existing calibration file, press ENTER.
+- Type `c` for calibration only when you intentionally want to recalibrate that arm set.

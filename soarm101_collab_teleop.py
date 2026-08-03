@@ -12,6 +12,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import platform
 import shutil
@@ -62,6 +63,107 @@ def require_lerobot_cli() -> str:
     print()
     print("Then run this script with the Python executable inside work\\lerobot_py312.")
     sys.exit(1)
+
+
+def user_calibration_root() -> str:
+    return os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "lerobot", "calibration")
+
+
+def repo_calibration_root() -> str:
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "calibration")
+
+
+def copy_file_if_missing(src: str, dst: str) -> bool:
+    if os.path.exists(dst):
+        return False
+    if not os.path.exists(src):
+        return False
+
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy2(src, dst)
+    return True
+
+
+def validate_calibration_json(path: str) -> bool:
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception:
+        return False
+
+    required_motors = {
+        "shoulder_pan",
+        "shoulder_lift",
+        "elbow_flex",
+        "wrist_flex",
+        "wrist_roll",
+        "gripper",
+    }
+    required_fields = {"id", "drive_mode", "homing_offset", "range_min", "range_max"}
+
+    if set(data) != required_motors:
+        return False
+
+    for motor_config in data.values():
+        if not required_fields.issubset(motor_config):
+            return False
+        if motor_config["range_min"] < 0 or motor_config["range_max"] < 0:
+            return False
+
+    return True
+
+
+def ensure_calibration_files(follower_id: str, leader_id: str) -> None:
+    repo_root = repo_calibration_root()
+    user_root = user_calibration_root()
+
+    calibration_paths = [
+        (
+            os.path.join(repo_root, "robots", "so_follower", f"{follower_id}.json"),
+            os.path.join(user_root, "robots", "so_follower", f"{follower_id}.json"),
+            "follower",
+        ),
+        (
+            os.path.join(repo_root, "teleoperators", "so_leader", f"{leader_id}.json"),
+            os.path.join(user_root, "teleoperators", "so_leader", f"{leader_id}.json"),
+            "leader",
+        ),
+    ]
+
+    copied = []
+    missing = []
+    invalid = []
+
+    for source, target, label in calibration_paths:
+        if copy_file_if_missing(source, target):
+            copied.append(target)
+
+        if not os.path.exists(target):
+            missing.append((label, target, source))
+        elif not validate_calibration_json(target):
+            invalid.append((label, target))
+
+    if copied:
+        print("Installed bundled calibration files:")
+        for path in copied:
+            print(f"  - {path}")
+
+    if missing or invalid:
+        print("ERROR: calibration files are missing or invalid.")
+        print()
+        for label, target, source in missing:
+            print(f"Missing {label} calibration:")
+            print(f"  expected: {target}")
+            print(f"  bundled:  {source}")
+        for label, target in invalid:
+            print(f"Invalid {label} calibration:")
+            print(f"  {target}")
+        print()
+        print("Fix options:")
+        print("  1. Run setup_lerobot_windows.ps1 again to copy bundled calibration files.")
+        print("  2. If this is a different arm set, run LeRobot calibration for that hardware.")
+        print("  3. If calibration asks to use an existing file, press ENTER. Type c only when you intentionally want a fresh calibration.")
+        sys.exit(1)
 
 
 def print_port_hint() -> list[str]:
@@ -132,6 +234,7 @@ def main() -> int:
     args, passthrough = parser.parse_known_args()
 
     teleoperate_cli = require_lerobot_cli()
+    ensure_calibration_files(args.follower_id, args.leader_id)
     ports = print_port_hint()
 
     if not args.follower_port:

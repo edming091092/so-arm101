@@ -3,6 +3,8 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VenvPath = Join-Path $RepoRoot "work\lerobot_py312"
 $ScriptPath = Join-Path $RepoRoot "soarm101_collab_teleop.py"
+$BundledCalibration = Join-Path $RepoRoot "calibration"
+$UserCalibration = Join-Path $env:USERPROFILE ".cache\huggingface\lerobot\calibration"
 
 function Find-Python312 {
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
@@ -74,6 +76,17 @@ if (Test-Path $FindPort) {
     Write-Host "OK: $FindPort" -ForegroundColor Green
 } else {
     Write-Host "WARNING: lerobot-find-port.exe was not found. Check pip output above." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "Installing bundled calibration files..."
+if (Test-Path $BundledCalibration) {
+    New-Item -ItemType Directory -Force -Path $UserCalibration | Out-Null
+    Copy-Item -Path (Join-Path $BundledCalibration "*") -Destination $UserCalibration -Recurse -Force
+    Write-Host "OK: calibration copied to:"
+    Write-Host $UserCalibration
+} else {
+    Write-Host "WARNING: bundled calibration folder was not found."
 }
 
 Write-Host ""

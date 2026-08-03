@@ -73,6 +73,12 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Likely cause: LeRobot could not find calibration files for the `my_awesome_*` ids, so it started a fresh calibration and computed an invalid negative motor position limit.
    - Fix: default calibration ids changed to `my_follower` and `my_leader`.
 
+12. Other computers could hit the same missing-calibration problem.
+   - Risk: a new computer may not have `my_follower.json` and `my_leader.json` in the LeRobot cache.
+   - Fix: added bundled calibration files under `calibration/`.
+   - Fix: setup script now copies bundled calibration files into the user's LeRobot calibration cache.
+   - Fix: teleoperation script checks calibration files before starting LeRobot and exits with repair instructions if they are missing or invalid.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.
