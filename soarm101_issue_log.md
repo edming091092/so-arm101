@@ -128,6 +128,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: teaching UI now launches the smooth direct teleop script.
    - Behavior: smooth direct teleop skips follower observation reads and writes to follower only when leader motion exceeds a deadband.
 
+21. Step 2 requested: YOLO COCO camera detection without custom training.
+   - Goal: use an already trained COCO model to detect general objects from a camera.
+   - Fix: added `setup_yolo_coco.ps1`.
+   - Fix: added `yolo_coco_camera.py`.
+   - Fix: added `start_yolo_coco_camera.bat`.
+   - Fix: teaching UI now includes a `YOLO COCO` button.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

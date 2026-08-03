@@ -51,6 +51,17 @@ Important: every different physical arm set needs its own calibration id. Do not
 - `soarm101_issue_log.md`
   - Running log of problems found while setting this up.
 
+- `setup_yolo_coco.ps1`
+  - Installs YOLO COCO camera dependencies.
+  - Uses pretrained COCO models, no custom training dataset required.
+
+- `yolo_coco_camera.py`
+  - Opens a camera and detects common COCO objects in real time.
+  - Shows boxes on the camera image and a detected-object list.
+
+- `start_yolo_coco_camera.bat`
+  - Starts the YOLO COCO camera demo with camera index `0`.
+
 ## New Computer Setup
 
 1. Install Python 3.12.
@@ -165,3 +176,38 @@ Move ... to the middle of its range of motion and press ENTER
 - The wrapper keeps `disable_torque_on_disconnect=false` by default to avoid extra serial writes after a communication failure.
 - Keep display/visualization off for the fastest leader-to-follower response.
 - If the arm stutters while idle, use `soarm101_smooth_direct_teleop.py`; it does not spam repeated identical position commands.
+
+## Step 2: YOLO COCO Camera
+
+This step does not train a new model. It uses an already trained COCO YOLO model to detect common objects such as person, cup, bottle, chair, keyboard, phone, and laptop.
+
+1. Install YOLO dependencies.
+
+```powershell
+cd $env:USERPROFILE\Desktop\so-arm101
+powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1
+```
+
+2. Start the camera demo.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0
+```
+
+3. If the wrong camera opens, try another camera number.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 1
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 2
+```
+
+4. Useful options.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0 --conf 0.45 --zh-labels
+```
+
+- `--conf` controls confidence threshold.
+- `--zh-labels` shows Chinese labels in the side list.
+- `--model yolo11n.pt` is the default lightweight COCO model.
+- Press `Q` or close the window to stop.

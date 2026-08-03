@@ -7,6 +7,8 @@ $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PythonExe = Join-Path $RepoRoot "work\lerobot_py312\Scripts\python.exe"
 $FindPortExe = Join-Path $RepoRoot "work\lerobot_py312\Scripts\lerobot-find-port.exe"
 $SetupScript = Join-Path $RepoRoot "setup_lerobot_windows.ps1"
+$YoloSetupScript = Join-Path $RepoRoot "setup_yolo_coco.ps1"
+$YoloCameraScript = Join-Path $RepoRoot "yolo_coco_camera.py"
 $TeleopScript = Join-Path $RepoRoot "soarm101_collab_teleop.py"
 $SmoothTeleopScript = Join-Path $RepoRoot "soarm101_smooth_direct_teleop.py"
 $PatchFeetech = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
@@ -205,10 +207,29 @@ $tools.Controls.Add($patchButton)
 
 $readmeButton = New-Object System.Windows.Forms.Button
 $readmeButton.Text = "Open README"
-$readmeButton.Location = New-Object System.Drawing.Point(440, 42)
+$readmeButton.Location = New-Object System.Drawing.Point(580, 42)
 $readmeButton.Size = New-Object System.Drawing.Size(120, 34)
 $readmeButton.Add_Click({ Start-Process (Join-Path $RepoRoot "README.md") })
 $tools.Controls.Add($readmeButton)
+
+$yoloButton = New-Object System.Windows.Forms.Button
+$yoloButton.Text = "YOLO COCO"
+$yoloButton.Location = New-Object System.Drawing.Point(440, 42)
+$yoloButton.Size = New-Object System.Drawing.Size(120, 34)
+$yoloButton.Add_Click({
+    if (-not (Test-Path $PythonExe)) {
+        [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
+        return
+    }
+    if (-not (Test-Path $YoloCameraScript)) {
+        [System.Windows.Forms.MessageBox]::Show("Missing yolo_coco_camera.py.", "Missing file")
+        return
+    }
+    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"import ultralytics`"; if (`$LASTEXITCODE -ne 0) { & `"$YoloSetupScript`" }; & `"$PythonExe`" `"$YoloCameraScript`" --camera 0"
+    Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
+    Add-Log "Opened YOLO COCO camera in a new PowerShell window."
+})
+$tools.Controls.Add($yoloButton)
 
 $note = New-Object System.Windows.Forms.Label
 $note.Text = "Calibration: first run for a new arm set may ask you to move joints. Move slowly and never force the joints."
