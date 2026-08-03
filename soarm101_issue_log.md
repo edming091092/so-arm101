@@ -122,6 +122,12 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: updated `patch_lerobot_skip_optional_observation.py` to skip follower observation entirely when `display_data=false`.
    - Expected result: teaching teleop loop becomes leader read plus follower write, avoiding the slow failing follower read path.
 
+20. Motion still felt jerky and pulsed while idle.
+   - Likely cause: the generic LeRobot teleop loop still sends repeated follower goal-position writes even when the leader has not moved.
+   - Fix: added `soarm101_smooth_direct_teleop.py`.
+   - Fix: teaching UI now launches the smooth direct teleop script.
+   - Behavior: smooth direct teleop skips follower observation reads and writes to follower only when leader motion exceeds a deadband.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

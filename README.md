@@ -17,6 +17,12 @@ Important: every different physical arm set needs its own calibration id. Do not
   - The follower arm mirrors the leader arm.
   - Requires `--arm-set-id` so different arm sets do not share calibration by accident.
 
+- `soarm101_smooth_direct_teleop.py`
+  - Teaching-first direct teleoperation loop.
+  - Skips follower observation reads.
+  - Sends follower commands only when the leader changes beyond a deadband.
+  - Recommended for smoother classroom demos.
+
 - `start_teaching_ui.bat`
   - Opens the teaching UI.
   - Use this for classroom/demo use instead of typing every command manually.
@@ -112,16 +118,16 @@ lab01_leader
 
 9. Start collaboration.
 
-   Example if this arm set is `lab01`, follower is `COM4`, and leader is `COM5`:
+   Recommended smooth mode if this arm set is `lab01`, follower is `COM4`, and leader is `COM5`:
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM4 --leader-port COM5 --fps 10
+& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_smooth_direct_teleop.py" --arm-set-id lab01 --follower-port COM4 --leader-port COM5 --fps 20
 ```
 
    If the arms are reversed, swap the ports:
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4 --fps 10
+& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_smooth_direct_teleop.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4 --fps 20
 ```
 
 10. First run for a new arm set may ask for calibration.
@@ -158,3 +164,4 @@ Move ... to the middle of its range of motion and press ENTER
 - Teaching mode defaults to `--fps 10`. Use low FPS first; only increase after the arm is stable.
 - The wrapper keeps `disable_torque_on_disconnect=false` by default to avoid extra serial writes after a communication failure.
 - Keep display/visualization off for the fastest leader-to-follower response.
+- If the arm stutters while idle, use `soarm101_smooth_direct_teleop.py`; it does not spam repeated identical position commands.

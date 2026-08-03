@@ -8,6 +8,7 @@ $PythonExe = Join-Path $RepoRoot "work\lerobot_py312\Scripts\python.exe"
 $FindPortExe = Join-Path $RepoRoot "work\lerobot_py312\Scripts\lerobot-find-port.exe"
 $SetupScript = Join-Path $RepoRoot "setup_lerobot_windows.ps1"
 $TeleopScript = Join-Path $RepoRoot "soarm101_collab_teleop.py"
+$SmoothTeleopScript = Join-Path $RepoRoot "soarm101_smooth_direct_teleop.py"
 $PatchFeetech = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
 $PatchRetries = Join-Path $RepoRoot "patch_lerobot_so101_retries.py"
 $PatchObservation = Join-Path $RepoRoot "patch_lerobot_skip_optional_observation.py"
@@ -68,7 +69,7 @@ function Start-Teleop {
         return
     }
 
-    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" `"$TeleopScript`" --arm-set-id $armSet --follower-port $follower --leader-port $leader --fps $fps"
+    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" `"$SmoothTeleopScript`" --arm-set-id $armSet --follower-port $follower --leader-port $leader --fps $fps"
     Add-Log "Opening teleop PowerShell window..."
     Add-Log $command
     Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
