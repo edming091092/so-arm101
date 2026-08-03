@@ -92,6 +92,12 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Cause: LeRobot computed `Homing_Offset = Present_Position - 2047`, but some Feetech raw positions can be outside a single 0..4095 turn during calibration.
    - Fix: updated `patch_lerobot_feetech_limits.py` to normalize homing positions modulo 4096 before computing the offset, then clamp the offset to the writable range.
 
+15. Teleoperation reached the 60 Hz loop but follower sync read failed.
+   - Error: `Failed to sync read 'Present_Position' on ids=[1, 2, 3, 4, 5, 6] after 1 tries`.
+   - Cause: LeRobot SO-101 follower/leader reads use `num_retry=0`, so a single transient Feetech serial failure ends teleoperation.
+   - Fix: added `patch_lerobot_so101_retries.py`.
+   - Fix: setup script now applies the retry patch automatically.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.
