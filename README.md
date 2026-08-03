@@ -110,13 +110,13 @@ lab01_leader
    Example if this arm set is `lab01`, follower is `COM4`, and leader is `COM5`:
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM4 --leader-port COM5
+& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM4 --leader-port COM5 --fps 10
 ```
 
    If the arms are reversed, swap the ports:
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4
+& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4 --fps 10
 ```
 
 10. First run for a new arm set may ask for calibration.
@@ -150,3 +150,5 @@ Move ... to the middle of its range of motion and press ENTER
 - COM ports can change between computers or USB ports.
 - Keep the robot workspace clear before running motion programs.
 - Different physical arm sets must use different `--arm-set-id` values.
+- Teaching mode defaults to `--fps 10`. Use low FPS first; only increase after the arm is stable.
+- The wrapper keeps `disable_torque_on_disconnect=false` by default to avoid extra serial writes after a communication failure.

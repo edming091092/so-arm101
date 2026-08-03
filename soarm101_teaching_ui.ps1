@@ -55,9 +55,10 @@ function Start-Teleop {
     $armSet = $armSetBox.Text.Trim()
     $follower = $followerBox.Text.Trim()
     $leader = $leaderBox.Text.Trim()
+    $fps = $fpsBox.Text.Trim()
 
-    if (-not $armSet -or -not $follower -or -not $leader) {
-        [System.Windows.Forms.MessageBox]::Show("Enter arm set id, follower COM, and leader COM.", "Missing fields")
+    if (-not $armSet -or -not $follower -or -not $leader -or -not $fps) {
+        [System.Windows.Forms.MessageBox]::Show("Enter arm set id, follower COM, leader COM, and FPS.", "Missing fields")
         return
     }
 
@@ -66,7 +67,7 @@ function Start-Teleop {
         return
     }
 
-    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" `"$TeleopScript`" --arm-set-id $armSet --follower-port $follower --leader-port $leader"
+    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" `"$TeleopScript`" --arm-set-id $armSet --follower-port $follower --leader-port $leader --fps $fps"
     Add-Log "Opening teleop PowerShell window..."
     Add-Log $command
     Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
@@ -135,16 +136,28 @@ $leaderBox.Location = New-Object System.Drawing.Point(380, 58)
 $leaderBox.Size = New-Object System.Drawing.Size(120, 28)
 $fields.Controls.Add($leaderBox)
 
+$fpsLabel = New-Object System.Windows.Forms.Label
+$fpsLabel.Text = "FPS"
+$fpsLabel.Location = New-Object System.Drawing.Point(530, 34)
+$fpsLabel.AutoSize = $true
+$fields.Controls.Add($fpsLabel)
+
+$fpsBox = New-Object System.Windows.Forms.TextBox
+$fpsBox.Text = "10"
+$fpsBox.Location = New-Object System.Drawing.Point(530, 58)
+$fpsBox.Size = New-Object System.Drawing.Size(60, 28)
+$fields.Controls.Add($fpsBox)
+
 $startButton = New-Object System.Windows.Forms.Button
 $startButton.Text = "Start teleop"
-$startButton.Location = New-Object System.Drawing.Point(530, 55)
+$startButton.Location = New-Object System.Drawing.Point(610, 55)
 $startButton.Size = New-Object System.Drawing.Size(120, 34)
 $startButton.Add_Click({ Start-Teleop })
 $fields.Controls.Add($startButton)
 
 $swapButton = New-Object System.Windows.Forms.Button
 $swapButton.Text = "Swap COM"
-$swapButton.Location = New-Object System.Drawing.Point(665, 55)
+$swapButton.Location = New-Object System.Drawing.Point(740, 55)
 $swapButton.Size = New-Object System.Drawing.Size(100, 34)
 $swapButton.Add_Click({
     $tmp = $followerBox.Text

@@ -103,6 +103,14 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `start_teaching_ui.bat` and `soarm101_teaching_ui.ps1`.
    - UI includes setup, patching, COM-port discovery, COM swap, README access, and teleoperation launch.
 
+17. Teleoperation still failed at default 60 FPS even with retries.
+   - Log: `Teleop loop time: 52.11ms (19 Hz)`.
+   - Error: `Failed to sync read 'Present_Position' ... after 6 tries. [TxRxResult] There is no status packet!`
+   - Follow-up error during disconnect: failed to write `Torque_Enable=0` after 6 tries.
+   - Cause: default 60 FPS overloaded the SO-101 Feetech serial bus on this setup, and disconnect tried another serial write after communication was already unhealthy.
+   - Fix: wrapper now defaults to `--fps 10`.
+   - Fix: wrapper now sets `--robot.disable_torque_on_disconnect=false` by default.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

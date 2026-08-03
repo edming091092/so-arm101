@@ -156,9 +156,11 @@ def safety_countdown(seconds: int) -> None:
 def build_command(args: argparse.Namespace, passthrough: list[str], teleoperate_cli: str) -> list[str]:
     cmd = [
         teleoperate_cli,
+        f"--fps={args.fps}",
         "--robot.type=so101_follower",
         f"--robot.port={args.follower_port}",
         f"--robot.id={args.follower_id}",
+        f"--robot.disable_torque_on_disconnect={str(args.disable_torque_on_disconnect).lower()}",
         "--teleop.type=so101_leader",
         f"--teleop.port={args.leader_port}",
         f"--teleop.id={args.leader_id}",
@@ -179,6 +181,12 @@ def main() -> int:
     parser.add_argument("--leader-port", help="Leader arm USB port, e.g. COM5")
     parser.add_argument("--follower-id", help="Advanced: explicit calibration id for follower arm")
     parser.add_argument("--leader-id", help="Advanced: explicit calibration id for leader arm")
+    parser.add_argument("--fps", type=int, default=10, help="Teleoperation loop FPS. Use 10 for teaching stability.")
+    parser.add_argument(
+        "--disable-torque-on-disconnect",
+        action="store_true",
+        help="Ask LeRobot to disable follower torque on disconnect. Off by default to avoid extra serial writes after a communication error.",
+    )
     parser.add_argument("--no-countdown", action="store_true", help="Skip safety countdown")
 
     args, passthrough = parser.parse_known_args()
