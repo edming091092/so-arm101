@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VenvPath = Join-Path $RepoRoot "work\lerobot_py312"
 $ScriptPath = Join-Path $RepoRoot "soarm101_collab_teleop.py"
+$PatchScript = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
 
 function Find-Python312 {
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
@@ -74,6 +75,14 @@ if (Test-Path $FindPort) {
     Write-Host "OK: $FindPort" -ForegroundColor Green
 } else {
     Write-Host "WARNING: lerobot-find-port.exe was not found. Check pip output above." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "Applying SO-ARM101 Feetech calibration patch..."
+if (Test-Path $PatchScript) {
+    & $VenvPython $PatchScript
+} else {
+    Write-Host "WARNING: patch_lerobot_feetech_limits.py was not found." -ForegroundColor Yellow
 }
 
 Write-Host ""

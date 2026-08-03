@@ -17,6 +17,11 @@ Important: every different physical arm set needs its own calibration id. Do not
   - The follower arm mirrors the leader arm.
   - Requires `--arm-set-id` so different arm sets do not share calibration by accident.
 
+- `patch_lerobot_feetech_limits.py`
+  - Patches LeRobot's Feetech calibration writer so out-of-range values are clamped to `0..4095`.
+  - Fixes calibration failures like `Negative values are not allowed: -163`.
+  - The setup script runs this automatically.
+
 - `soarm101_issue_log.md`
   - Running log of problems found while setting this up.
 
@@ -49,6 +54,8 @@ cd $env:USERPROFILE\Desktop\so-arm101
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 ```
+
+   The setup script also applies the Feetech calibration patch. This prevents LeRobot from crashing if first-time calibration records a range such as `-163` or `4380`.
 
 5. Connect both SO-ARM101 arms.
 

@@ -80,6 +80,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: require `--arm-set-id` so every physical arm set gets separate ids such as `lab01_follower` and `lab01_leader`.
    - Fix: README now explains first-run calibration for each new arm set.
 
+13. First calibration for a different arm set still failed with out-of-range Feetech limits.
+   - Error: `ValueError: Negative values are not allowed: -163`
+   - Observed table included `elbow_flex MIN -163` and `wrist_flex MAX 4380`.
+   - Cause: LeRobot writes recorded SO leader/follower range limits directly to Feetech position-limit registers, but Feetech limits must be in `0..4095`.
+   - Fix: added `patch_lerobot_feetech_limits.py`.
+   - Fix: setup script now applies the patch automatically after installing LeRobot.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.
