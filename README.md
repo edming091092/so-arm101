@@ -25,7 +25,15 @@ This repo contains the files needed to set up a Windows computer for SO-ARM101 /
 
    https://www.python.org/downloads/release/python-312/
 
-2. Clone or download this repo.
+2. Clone this repo to the Desktop.
+
+```powershell
+cd $env:USERPROFILE\Desktop
+git clone https://github.com/edming091092/so-arm101.git
+cd so-arm101
+```
+
+   If Git is not installed, download the repo ZIP from GitHub, extract it to the Desktop, then open PowerShell inside the extracted `so-arm101` folder.
 
 3. Open PowerShell in this repo folder.
 
