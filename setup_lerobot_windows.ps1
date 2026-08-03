@@ -3,8 +3,6 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VenvPath = Join-Path $RepoRoot "work\lerobot_py312"
 $ScriptPath = Join-Path $RepoRoot "soarm101_collab_teleop.py"
-$BundledCalibration = Join-Path $RepoRoot "calibration"
-$UserCalibration = Join-Path $env:USERPROFILE ".cache\huggingface\lerobot\calibration"
 
 function Find-Python312 {
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
@@ -79,19 +77,12 @@ if (Test-Path $FindPort) {
 }
 
 Write-Host ""
-Write-Host "Installing bundled calibration files..."
-if (Test-Path $BundledCalibration) {
-    New-Item -ItemType Directory -Force -Path $UserCalibration | Out-Null
-    Copy-Item -Path (Join-Path $BundledCalibration "*") -Destination $UserCalibration -Recurse -Force
-    Write-Host "OK: calibration copied to:"
-    Write-Host $UserCalibration
-} else {
-    Write-Host "WARNING: bundled calibration folder was not found."
-}
-
+Write-Host "IMPORTANT:"
+Write-Host "Each different arm set needs its own calibration id."
+Write-Host "Do not reuse another arm set's calibration files."
 Write-Host ""
-Write-Host "Next command if follower=COM4 and leader=COM5:"
-Write-Host ("& `"{0}`" `"{1}`" --follower-port COM4 --leader-port COM5" -f $VenvPython, $ScriptPath)
+Write-Host "Example for arm set lab01 if follower=COM4 and leader=COM5:"
+Write-Host ("& `"{0}`" `"{1}`" --arm-set-id lab01 --follower-port COM4 --leader-port COM5" -f $VenvPython, $ScriptPath)
 Write-Host ""
-Write-Host "If they are reversed:"
-Write-Host ("& `"{0}`" `"{1}`" --follower-port COM5 --leader-port COM4" -f $VenvPython, $ScriptPath)
+Write-Host "If the ports are reversed:"
+Write-Host ("& `"{0}`" `"{1}`" --arm-set-id lab01 --follower-port COM5 --leader-port COM4" -f $VenvPython, $ScriptPath)

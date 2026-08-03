@@ -2,19 +2,19 @@
 """
 SO-ARM101 / SO-101 leader-follower teleoperation.
 
-Move the leader arm by hand. The follower arm mirrors it through LeRobot.
+Each different physical arm set must use its own calibration id.
 
 Examples:
-  python soarm101_collab_teleop.py --follower-port COM4 --leader-port COM5
-  python soarm101_collab_teleop.py --follower-port COM5 --leader-port COM4
+  python soarm101_collab_teleop.py --arm-set-id lab01 --follower-port COM4 --leader-port COM5
+  python soarm101_collab_teleop.py --arm-set-id lab02 --follower-port COM7 --leader-port COM8
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -65,105 +65,53 @@ def require_lerobot_cli() -> str:
     sys.exit(1)
 
 
-def user_calibration_root() -> str:
-    return os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "lerobot", "calibration")
+def calibration_path(kind: str, robot_type: str, calibration_id: str) -> str:
+    return os.path.join(
+        os.path.expanduser("~"),
+        ".cache",
+        "huggingface",
+        "lerobot",
+        "calibration",
+        kind,
+        robot_type,
+        f"{calibration_id}.json",
+    )
 
 
-def repo_calibration_root() -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "calibration")
+def sanitize_id(value: str) -> str:
+    clean = re.sub(r"[^A-Za-z0-9_.-]+", "_", value.strip())
+    clean = clean.strip("._-")
+    if not clean:
+        raise ValueError("arm-set-id cannot be empty")
+    return clean
 
 
-def copy_file_if_missing(src: str, dst: str) -> bool:
-    if os.path.exists(dst):
-        return False
-    if not os.path.exists(src):
-        return False
+def print_calibration_status(follower_id: str, leader_id: str) -> None:
+    follower_calibration = calibration_path("robots", "so_follower", follower_id)
+    leader_calibration = calibration_path("teleoperators", "so_leader", leader_id)
 
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copy2(src, dst)
-    return True
+    print("Calibration ids:")
+    print(f"  follower: {follower_id}")
+    print(f"  leader:   {leader_id}")
+    print()
+    print("Calibration files:")
+    print(f"  follower: {follower_calibration}")
+    print(f"  leader:   {leader_calibration}")
+    print()
 
-
-def validate_calibration_json(path: str) -> bool:
-    try:
-        with open(path, "r", encoding="utf-8") as handle:
-            data = json.load(handle)
-    except Exception:
-        return False
-
-    required_motors = {
-        "shoulder_pan",
-        "shoulder_lift",
-        "elbow_flex",
-        "wrist_flex",
-        "wrist_roll",
-        "gripper",
-    }
-    required_fields = {"id", "drive_mode", "homing_offset", "range_min", "range_max"}
-
-    if set(data) != required_motors:
-        return False
-
-    for motor_config in data.values():
-        if not required_fields.issubset(motor_config):
-            return False
-        if motor_config["range_min"] < 0 or motor_config["range_max"] < 0:
-            return False
-
-    return True
-
-
-def ensure_calibration_files(follower_id: str, leader_id: str) -> None:
-    repo_root = repo_calibration_root()
-    user_root = user_calibration_root()
-
-    calibration_paths = [
-        (
-            os.path.join(repo_root, "robots", "so_follower", f"{follower_id}.json"),
-            os.path.join(user_root, "robots", "so_follower", f"{follower_id}.json"),
-            "follower",
-        ),
-        (
-            os.path.join(repo_root, "teleoperators", "so_leader", f"{leader_id}.json"),
-            os.path.join(user_root, "teleoperators", "so_leader", f"{leader_id}.json"),
-            "leader",
-        ),
-    ]
-
-    copied = []
     missing = []
-    invalid = []
+    if not os.path.exists(follower_calibration):
+        missing.append("follower")
+    if not os.path.exists(leader_calibration):
+        missing.append("leader")
 
-    for source, target, label in calibration_paths:
-        if copy_file_if_missing(source, target):
-            copied.append(target)
-
-        if not os.path.exists(target):
-            missing.append((label, target, source))
-        elif not validate_calibration_json(target):
-            invalid.append((label, target))
-
-    if copied:
-        print("Installed bundled calibration files:")
-        for path in copied:
-            print(f"  - {path}")
-
-    if missing or invalid:
-        print("ERROR: calibration files are missing or invalid.")
+    if missing:
+        print("Calibration note:")
+        print("  One or more calibration files do not exist yet.")
+        print("  LeRobot should ask you to calibrate this arm set.")
+        print("  This is normal for a different physical arm set or a new computer.")
+        print("  Use a unique --arm-set-id for each different physical arm set.")
         print()
-        for label, target, source in missing:
-            print(f"Missing {label} calibration:")
-            print(f"  expected: {target}")
-            print(f"  bundled:  {source}")
-        for label, target in invalid:
-            print(f"Invalid {label} calibration:")
-            print(f"  {target}")
-        print()
-        print("Fix options:")
-        print("  1. Run setup_lerobot_windows.ps1 again to copy bundled calibration files.")
-        print("  2. If this is a different arm set, run LeRobot calibration for that hardware.")
-        print("  3. If calibration asks to use an existing file, press ENTER. Type c only when you intentionally want a fresh calibration.")
-        sys.exit(1)
 
 
 def print_port_hint() -> list[str]:
@@ -196,7 +144,8 @@ def safety_countdown(seconds: int) -> None:
     print("  1. The follower arm is clamped firmly.")
     print("  2. The 1 meter workspace is clear.")
     print("  3. Power, USB, and servo cables are connected.")
-    print("  4. Motor setup and calibration are complete.")
+    print("  4. Motor setup is complete.")
+    print("  5. This arm set uses its own calibration id.")
     print()
     print(f"Starting in {seconds} seconds. Press Ctrl+C to cancel.")
     for remaining in range(seconds, 0, -1):
@@ -225,16 +174,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run SO-ARM101/SO-101 leader-to-follower teleoperation."
     )
+    parser.add_argument("--arm-set-id", help="Unique id for this physical arm set, e.g. lab01 or classroom_arm_03")
     parser.add_argument("--follower-port", help="Follower arm USB port, e.g. COM4")
     parser.add_argument("--leader-port", help="Leader arm USB port, e.g. COM5")
-    parser.add_argument("--follower-id", default="my_follower", help="Calibration id for follower arm")
-    parser.add_argument("--leader-id", default="my_leader", help="Calibration id for leader arm")
+    parser.add_argument("--follower-id", help="Advanced: explicit calibration id for follower arm")
+    parser.add_argument("--leader-id", help="Advanced: explicit calibration id for leader arm")
     parser.add_argument("--no-countdown", action="store_true", help="Skip safety countdown")
 
     args, passthrough = parser.parse_known_args()
 
+    if not args.arm_set_id and not (args.follower_id and args.leader_id):
+        parser.error("provide --arm-set-id, or provide both --follower-id and --leader-id")
+
+    if args.arm_set_id:
+        arm_set_id = sanitize_id(args.arm_set_id)
+        args.follower_id = args.follower_id or f"{arm_set_id}_follower"
+        args.leader_id = args.leader_id or f"{arm_set_id}_leader"
+
     teleoperate_cli = require_lerobot_cli()
-    ensure_calibration_files(args.follower_id, args.leader_id)
+    print_calibration_status(args.follower_id, args.leader_id)
     ports = print_port_hint()
 
     if not args.follower_port:
@@ -256,6 +214,10 @@ def main() -> int:
     print()
     print("Starting LeRobot teleoperation:")
     print("  " + " ".join(cmd))
+    print()
+    print("If LeRobot asks to calibrate, follow the prompts carefully.")
+    print("If it asks whether to use an existing calibration file, press ENTER.")
+    print("Type c only when you intentionally want to recalibrate this exact arm set.")
     print()
 
     try:
