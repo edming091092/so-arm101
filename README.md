@@ -17,6 +17,14 @@ Important: every different physical arm set needs its own calibration id. Do not
   - The follower arm mirrors the leader arm.
   - Requires `--arm-set-id` so different arm sets do not share calibration by accident.
 
+- `start_teaching_ui.bat`
+  - Opens the teaching UI.
+  - Use this for classroom/demo use instead of typing every command manually.
+
+- `soarm101_teaching_ui.ps1`
+  - Minimal Windows UI for setup, patching, COM-port discovery, and teleoperation launch.
+  - Keeps only the teaching workflow.
+
 - `patch_lerobot_feetech_limits.py`
   - Patches LeRobot's Feetech calibration code for SO-ARM101/SO-101.
   - Clamps position-limit values to `0..4095`.
@@ -64,9 +72,15 @@ powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 
    The setup script also applies local SO-ARM101 patches. These prevent LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`, and add retries for transient serial read failures.
 
-5. Connect both SO-ARM101 arms.
+5. Optional: open the teaching UI.
 
-6. Find the COM ports.
+```powershell
+.\start_teaching_ui.bat
+```
+
+6. Connect both SO-ARM101 arms.
+
+7. Find the COM ports.
 
    You can check Windows Device Manager, or run:
 
@@ -74,7 +88,7 @@ powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 .\work\lerobot_py312\Scripts\lerobot-find-port.exe
 ```
 
-7. Choose an arm-set id.
+8. Choose an arm-set id.
 
    Use a different id for every different physical arm set:
 
@@ -91,7 +105,7 @@ lab01_follower
 lab01_leader
 ```
 
-8. Start collaboration.
+9. Start collaboration.
 
    Example if this arm set is `lab01`, follower is `COM4`, and leader is `COM5`:
 
@@ -105,7 +119,7 @@ lab01_leader
 & ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4
 ```
 
-9. First run for a new arm set may ask for calibration.
+10. First run for a new arm set may ask for calibration.
 
    Follow the LeRobot prompts carefully.
 

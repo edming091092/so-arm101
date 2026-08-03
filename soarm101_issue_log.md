@@ -98,6 +98,11 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `patch_lerobot_so101_retries.py`.
    - Fix: setup script now applies the retry patch automatically.
 
+16. Teaching workflow should not require typing every command.
+   - Request: keep only the UI features needed for teaching.
+   - Fix: added `start_teaching_ui.bat` and `soarm101_teaching_ui.ps1`.
+   - UI includes setup, patching, COM-port discovery, COM swap, README access, and teleoperation launch.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.
