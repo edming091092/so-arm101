@@ -59,6 +59,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
 9. Repo copies initially had garbled non-ASCII text.
    - Fix: executable scripts and issue log were rewritten as ASCII-only files.
 
+10. GitHub push is using the wrong cached credential.
+   - Push error: `Permission to edming091092/so-arm101.git denied to Ununvailable.`
+   - Cause: Git Credential Manager is using a cached GitHub identity named `Ununvailable`, even if the browser is logged into another account.
+   - Incorrect cleanup command tried: `git credential-manager erase https://github.com`
+   - Result: `Unrecognized command or argument 'https://github.com'.`
+   - Correct cleanup approach: pipe a credential record into `git credential-manager erase`, or remove the GitHub entry from Windows Credential Manager.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.
