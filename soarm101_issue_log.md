@@ -117,6 +117,11 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `patch_lerobot_skip_optional_observation.py`.
    - Fix: setup script now applies the optional-observation patch automatically.
 
+19. Teleoperation felt like only about 3 Hz after the optional-observation warning patch.
+   - Cause: the first observation patch still attempted follower sync reads every loop, then waited through retries before continuing.
+   - Fix: updated `patch_lerobot_skip_optional_observation.py` to skip follower observation entirely when `display_data=false`.
+   - Expected result: teaching teleop loop becomes leader read plus follower write, avoiding the slow failing follower read path.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

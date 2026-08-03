@@ -38,7 +38,7 @@ Important: every different physical arm set needs its own calibration id. Do not
   - The setup script runs this automatically.
 
 - `patch_lerobot_skip_optional_observation.py`
-  - Lets teaching teleoperation continue if the optional follower observation read fails.
+  - Skips optional follower observation reads when display is off.
   - This is useful because leader-to-follower control can still send leader actions even when follower observation is unavailable.
   - The setup script runs this automatically.
 
@@ -75,7 +75,7 @@ cd $env:USERPROFILE\Desktop\so-arm101
 powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 ```
 
-   The setup script also applies local SO-ARM101 patches. These prevent LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`, add retries for transient serial read failures, and let teleoperation continue if the optional follower observation read fails.
+   The setup script also applies local SO-ARM101 patches. These prevent LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`, add retries for transient serial read failures, and skip optional follower observation reads for faster teaching teleoperation.
 
 5. Optional: open the teaching UI.
 
@@ -157,3 +157,4 @@ Move ... to the middle of its range of motion and press ENTER
 - Different physical arm sets must use different `--arm-set-id` values.
 - Teaching mode defaults to `--fps 10`. Use low FPS first; only increase after the arm is stable.
 - The wrapper keeps `disable_torque_on_disconnect=false` by default to avoid extra serial writes after a communication failure.
+- Keep display/visualization off for the fastest leader-to-follower response.

@@ -10,8 +10,9 @@ On some Windows + Feetech setups, follower sync_read can intermittently fail wit
 
     Failed to sync read 'Present_Position' ... There is no status packet!
 
-This patch catches that optional observation failure, uses an empty observation,
-and continues sending leader actions to the follower.
+This patch skips that optional observation read completely when display_data is
+false. If display_data is true, it catches failures and continues with an empty
+observation.
 """
 
 from __future__ import annotations
@@ -23,11 +24,26 @@ from pathlib import Path
 
 PATCH_MARKER = "# SO-ARM101 local patch: continue without optional follower observation"
 
-ORIGINAL = '''        # Get robot observation
+ORIGINAL_UNPATCHED = '''        # Get robot observation
         # Not really needed for now other than for visualization
         # teleop_action_processor can take None as an observation
         # given that it is the identity processor as default
         obs = robot.get_observation()
+
+        if robot.name == "unitree_g1":
+            teleop.send_feedback(obs)
+'''
+
+ORIGINAL_WARNING_PATCH = '''        # Get robot observation
+        # Not really needed for now other than for visualization
+        # teleop_action_processor can take None as an observation
+        # given that it is the identity processor as default
+        # SO-ARM101 local patch: continue without optional follower observation
+        try:
+            obs = robot.get_observation()
+        except ConnectionError as exc:
+            print(f"Warning: skipped optional robot observation after communication error: {exc}")
+            obs = {}
 
         if robot.name == "unitree_g1":
             teleop.send_feedback(obs)
@@ -38,10 +54,13 @@ PATCHED = '''        # Get robot observation
         # teleop_action_processor can take None as an observation
         # given that it is the identity processor as default
         # SO-ARM101 local patch: continue without optional follower observation
-        try:
-            obs = robot.get_observation()
-        except ConnectionError as exc:
-            print(f"Warning: skipped optional robot observation after communication error: {exc}")
+        if display_data or robot.name == "unitree_g1":
+            try:
+                obs = robot.get_observation()
+            except ConnectionError as exc:
+                print(f"Warning: skipped optional robot observation after communication error: {exc}")
+                obs = {}
+        else:
             obs = {}
 
         if robot.name == "unitree_g1":
@@ -60,11 +79,15 @@ def main() -> int:
     path = find_teleoperate_path()
     text = path.read_text(encoding="utf-8")
 
-    if PATCH_MARKER in text:
-        print(f"Optional-observation patch already applied: {path}")
+    if PATCHED in text:
+        print(f"Optional-observation fast-path patch already applied: {path}")
         return 0
 
-    if ORIGINAL not in text:
+    if ORIGINAL_WARNING_PATCH in text:
+        original = ORIGINAL_WARNING_PATCH
+    elif ORIGINAL_UNPATCHED in text:
+        original = ORIGINAL_UNPATCHED
+    else:
         print(f"ERROR: expected teleop observation block was not found in {path}")
         print("LeRobot may have changed. Patch not applied.")
         return 1
@@ -73,7 +96,7 @@ def main() -> int:
     if not backup_path.exists():
         shutil.copy2(path, backup_path)
 
-    path.write_text(text.replace(ORIGINAL, PATCHED), encoding="utf-8")
+    path.write_text(text.replace(original, PATCHED), encoding="utf-8")
     print(f"Applied optional-observation patch: {path}")
     print(f"Backup: {backup_path}")
     return 0
