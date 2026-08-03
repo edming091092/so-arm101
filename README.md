@@ -37,6 +37,12 @@ cd so-arm101
 
 3. Open PowerShell in this repo folder.
 
+   If the repo is on your Desktop, you can enter the folder with:
+
+```powershell
+cd $env:USERPROFILE\Desktop\so-arm101
+```
+
 4. Run the setup script:
 
 ```powershell
