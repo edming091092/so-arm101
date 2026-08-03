@@ -29,9 +29,28 @@ def list_serial_ports() -> list[str]:
     return [port.device for port in list_ports.comports()]
 
 
-def require_lerobot_cli() -> None:
-    if shutil.which("lerobot-teleoperate"):
-        return
+def find_lerobot_teleoperate() -> str | None:
+    cli = shutil.which("lerobot-teleoperate")
+    if cli:
+        return cli
+
+    scripts_dir = os.path.dirname(os.path.abspath(sys.executable))
+    candidates = [
+        os.path.join(scripts_dir, "lerobot-teleoperate.exe"),
+        os.path.join(scripts_dir, "lerobot-teleoperate"),
+    ]
+
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+
+    return None
+
+
+def require_lerobot_cli() -> str:
+    cli = find_lerobot_teleoperate()
+    if cli:
+        return cli
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     setup_script = os.path.join(script_dir, "setup_lerobot_windows.ps1")
@@ -83,9 +102,9 @@ def safety_countdown(seconds: int) -> None:
         time.sleep(1)
 
 
-def build_command(args: argparse.Namespace, passthrough: list[str]) -> list[str]:
+def build_command(args: argparse.Namespace, passthrough: list[str], teleoperate_cli: str) -> list[str]:
     cmd = [
-        "lerobot-teleoperate",
+        teleoperate_cli,
         "--robot.type=so101_follower",
         f"--robot.port={args.follower_port}",
         f"--robot.id={args.follower_id}",
@@ -112,7 +131,7 @@ def main() -> int:
 
     args, passthrough = parser.parse_known_args()
 
-    require_lerobot_cli()
+    teleoperate_cli = require_lerobot_cli()
     ports = print_port_hint()
 
     if not args.follower_port:
@@ -130,7 +149,7 @@ def main() -> int:
     if not args.no_countdown:
         safety_countdown(5)
 
-    cmd = build_command(args, passthrough)
+    cmd = build_command(args, passthrough, teleoperate_cli)
     print()
     print("Starting LeRobot teleoperation:")
     print("  " + " ".join(cmd))
