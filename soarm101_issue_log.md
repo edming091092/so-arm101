@@ -139,6 +139,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: teaching UI now has a `Cam` field used by the `YOLO COCO` button.
    - Fix: `start_yolo_coco_camera.bat` now accepts an optional camera id argument.
 
+23. Step 3 requested: SAM3 prompt segmentation.
+   - Goal: add SAM3 recognition/segmentation with editable prompt and confidence.
+   - Fix: added `setup_sam3.ps1`.
+   - Fix: added `sam3_prompt_camera.py`.
+   - Fix: added `start_sam3_prompt_camera.bat`.
+   - Fix: teaching UI now includes SAM3 prompt, confidence, and launch controls.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

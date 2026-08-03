@@ -63,6 +63,18 @@ Important: every different physical arm set needs its own calibration id. Do not
   - Starts the YOLO COCO camera demo.
   - Optional first argument sets camera id, for example `.\start_yolo_coco_camera.bat 1`.
 
+- `setup_sam3.ps1`
+  - Installs SAM3 dependencies.
+  - Copies `sam3.pt` into `models\sam3.pt` when it can find the model on this computer.
+
+- `sam3_prompt_camera.py`
+  - Opens a camera and runs SAM3 prompt-based segmentation.
+  - Prompt and confidence can be changed while the window is open.
+
+- `start_sam3_prompt_camera.bat`
+  - Starts the SAM3 prompt camera demo.
+  - Arguments: camera id, prompt, confidence.
+
 ## New Computer Setup
 
 1. Install Python 3.12.
@@ -219,4 +231,44 @@ powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1
 - `--conf` controls confidence threshold.
 - `--zh-labels` shows Chinese labels in the side list.
 - `--model yolo11n.pt` is the default lightweight COCO model.
+- Press `Q` or close the window to stop.
+
+## Step 3: SAM3 Prompt Camera
+
+This step uses SAM3 prompt-based segmentation. It does not train a new model. You type a prompt such as `cup`, `bottle`, `keyboard`, or `red cup`, adjust confidence, and SAM3 segments matching objects.
+
+1. Install SAM3 dependencies and prepare `sam3.pt`.
+
+```powershell
+cd $env:USERPROFILE\Desktop\so-arm101
+powershell -ExecutionPolicy Bypass -File .\setup_sam3.ps1
+```
+
+2. Start SAM3 with a prompt.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup" --conf 0.25
+```
+
+3. If the wrong camera opens, change camera id.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 1 --prompt "bottle" --conf 0.30
+```
+
+4. Multiple prompts are allowed.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup, bottle, keyboard" --conf 0.25
+```
+
+5. Bat launcher examples.
+
+```powershell
+.\start_sam3_prompt_camera.bat 0 cup 0.25
+.\start_sam3_prompt_camera.bat 1 bottle 0.30
+```
+
+- `Prompt` tells SAM3 what object to segment.
+- `Conf` controls detection confidence. Lower values find more objects but can include mistakes.
 - Press `Q` or close the window to stop.

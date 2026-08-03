@@ -9,6 +9,8 @@ $FindPortExe = Join-Path $RepoRoot "work\lerobot_py312\Scripts\lerobot-find-port
 $SetupScript = Join-Path $RepoRoot "setup_lerobot_windows.ps1"
 $YoloSetupScript = Join-Path $RepoRoot "setup_yolo_coco.ps1"
 $YoloCameraScript = Join-Path $RepoRoot "yolo_coco_camera.py"
+$Sam3SetupScript = Join-Path $RepoRoot "setup_sam3.ps1"
+$Sam3CameraScript = Join-Path $RepoRoot "sam3_prompt_camera.py"
 $TeleopScript = Join-Path $RepoRoot "soarm101_collab_teleop.py"
 $SmoothTeleopScript = Join-Path $RepoRoot "soarm101_smooth_direct_teleop.py"
 $PatchFeetech = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
@@ -174,7 +176,7 @@ $fields.Controls.Add($swapButton)
 $tools = New-Object System.Windows.Forms.GroupBox
 $tools.Text = "Teaching tools"
 $tools.Location = New-Object System.Drawing.Point(24, 240)
-$tools.Size = New-Object System.Drawing.Size(800, 108)
+$tools.Size = New-Object System.Drawing.Size(800, 160)
 $form.Controls.Add($tools)
 
 $setupButton = New-Object System.Windows.Forms.Button
@@ -245,9 +247,59 @@ $yoloButton.Add_Click({
 })
 $tools.Controls.Add($yoloButton)
 
+$promptLabel = New-Object System.Windows.Forms.Label
+$promptLabel.Text = "SAM3 prompt"
+$promptLabel.Location = New-Object System.Drawing.Point(20, 96)
+$promptLabel.AutoSize = $true
+$tools.Controls.Add($promptLabel)
+
+$promptBox = New-Object System.Windows.Forms.TextBox
+$promptBox.Text = "cup"
+$promptBox.Location = New-Object System.Drawing.Point(120, 92)
+$promptBox.Size = New-Object System.Drawing.Size(220, 28)
+$tools.Controls.Add($promptBox)
+
+$confLabel = New-Object System.Windows.Forms.Label
+$confLabel.Text = "Conf"
+$confLabel.Location = New-Object System.Drawing.Point(365, 96)
+$confLabel.AutoSize = $true
+$tools.Controls.Add($confLabel)
+
+$confBox = New-Object System.Windows.Forms.TextBox
+$confBox.Text = "0.25"
+$confBox.Location = New-Object System.Drawing.Point(410, 92)
+$confBox.Size = New-Object System.Drawing.Size(60, 28)
+$tools.Controls.Add($confBox)
+
+$sam3Button = New-Object System.Windows.Forms.Button
+$sam3Button.Text = "SAM3"
+$sam3Button.Location = New-Object System.Drawing.Point(490, 89)
+$sam3Button.Size = New-Object System.Drawing.Size(145, 34)
+$sam3Button.Add_Click({
+    if (-not (Test-Path $PythonExe)) {
+        [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
+        return
+    }
+    if (-not (Test-Path $Sam3CameraScript)) {
+        [System.Windows.Forms.MessageBox]::Show("Missing sam3_prompt_camera.py.", "Missing file")
+        return
+    }
+    $cameraId = $cameraBox.Text.Trim()
+    if (-not $cameraId) { $cameraId = "0" }
+    $prompt = $promptBox.Text.Trim()
+    if (-not $prompt) { $prompt = "cup" }
+    $conf = $confBox.Text.Trim()
+    if (-not $conf) { $conf = "0.25" }
+    $safePrompt = $prompt.Replace('"', '')
+    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"from ultralytics.models.sam import SAM3SemanticPredictor`"; if (`$LASTEXITCODE -ne 0) { & `"$Sam3SetupScript`" }; & `"$PythonExe`" `"$Sam3CameraScript`" --camera $cameraId --prompt `"$safePrompt`" --conf $conf"
+    Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
+    Add-Log "Opened SAM3 camera $cameraId prompt '$safePrompt' conf $conf in a new PowerShell window."
+})
+$tools.Controls.Add($sam3Button)
+
 $note = New-Object System.Windows.Forms.Label
 $note.Text = "Calibration: first run for a new arm set may ask you to move joints. Move slowly and never force the joints."
-$note.Location = New-Object System.Drawing.Point(24, 365)
+$note.Location = New-Object System.Drawing.Point(24, 415)
 $note.Size = New-Object System.Drawing.Size(800, 24)
 $note.ForeColor = [System.Drawing.Color]::FromArgb(55, 65, 81)
 $form.Controls.Add($note)
@@ -256,8 +308,8 @@ $log = New-Object System.Windows.Forms.TextBox
 $log.Multiline = $true
 $log.ReadOnly = $true
 $log.ScrollBars = "Vertical"
-$log.Location = New-Object System.Drawing.Point(24, 400)
-$log.Size = New-Object System.Drawing.Size(800, 180)
+$log.Location = New-Object System.Drawing.Point(24, 450)
+$log.Size = New-Object System.Drawing.Size(800, 130)
 $log.Font = New-Object System.Drawing.Font("Consolas", 9)
 $log.BackColor = [System.Drawing.Color]::FromArgb(17, 24, 39)
 $log.ForeColor = [System.Drawing.Color]::FromArgb(229, 231, 235)
