@@ -135,6 +135,10 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `start_yolo_coco_camera.bat`.
    - Fix: teaching UI now includes a `YOLO COCO` button.
 
+22. YOLO camera id must be editable.
+   - Fix: teaching UI now has a `Cam` field used by the `YOLO COCO` button.
+   - Fix: `start_yolo_coco_camera.bat` now accepts an optional camera id argument.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

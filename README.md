@@ -60,7 +60,8 @@ Important: every different physical arm set needs its own calibration id. Do not
   - Shows boxes on the camera image and a detected-object list.
 
 - `start_yolo_coco_camera.bat`
-  - Starts the YOLO COCO camera demo with camera index `0`.
+  - Starts the YOLO COCO camera demo.
+  - Optional first argument sets camera id, for example `.\start_yolo_coco_camera.bat 1`.
 
 ## New Computer Setup
 
@@ -192,6 +193,14 @@ powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1
 
 ```powershell
 & ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0
+```
+
+   Or use the bat launcher:
+
+```powershell
+.\start_yolo_coco_camera.bat 0
+.\start_yolo_coco_camera.bat 1
+.\start_yolo_coco_camera.bat 2
 ```
 
 3. If the wrong camera opens, try another camera number.

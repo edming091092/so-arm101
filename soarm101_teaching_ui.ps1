@@ -207,15 +207,27 @@ $tools.Controls.Add($patchButton)
 
 $readmeButton = New-Object System.Windows.Forms.Button
 $readmeButton.Text = "Open README"
-$readmeButton.Location = New-Object System.Drawing.Point(580, 42)
+$readmeButton.Location = New-Object System.Drawing.Point(660, 42)
 $readmeButton.Size = New-Object System.Drawing.Size(120, 34)
 $readmeButton.Add_Click({ Start-Process (Join-Path $RepoRoot "README.md") })
 $tools.Controls.Add($readmeButton)
 
+$cameraLabel = New-Object System.Windows.Forms.Label
+$cameraLabel.Text = "Cam"
+$cameraLabel.Location = New-Object System.Drawing.Point(430, 20)
+$cameraLabel.AutoSize = $true
+$tools.Controls.Add($cameraLabel)
+
+$cameraBox = New-Object System.Windows.Forms.TextBox
+$cameraBox.Text = "0"
+$cameraBox.Location = New-Object System.Drawing.Point(430, 45)
+$cameraBox.Size = New-Object System.Drawing.Size(45, 28)
+$tools.Controls.Add($cameraBox)
+
 $yoloButton = New-Object System.Windows.Forms.Button
 $yoloButton.Text = "YOLO COCO"
-$yoloButton.Location = New-Object System.Drawing.Point(440, 42)
-$yoloButton.Size = New-Object System.Drawing.Size(120, 34)
+$yoloButton.Location = New-Object System.Drawing.Point(490, 42)
+$yoloButton.Size = New-Object System.Drawing.Size(145, 34)
 $yoloButton.Add_Click({
     if (-not (Test-Path $PythonExe)) {
         [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
@@ -225,9 +237,11 @@ $yoloButton.Add_Click({
         [System.Windows.Forms.MessageBox]::Show("Missing yolo_coco_camera.py.", "Missing file")
         return
     }
-    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"import ultralytics`"; if (`$LASTEXITCODE -ne 0) { & `"$YoloSetupScript`" }; & `"$PythonExe`" `"$YoloCameraScript`" --camera 0"
+    $cameraId = $cameraBox.Text.Trim()
+    if (-not $cameraId) { $cameraId = "0" }
+    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"import ultralytics`"; if (`$LASTEXITCODE -ne 0) { & `"$YoloSetupScript`" }; & `"$PythonExe`" `"$YoloCameraScript`" --camera $cameraId"
     Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
-    Add-Log "Opened YOLO COCO camera in a new PowerShell window."
+    Add-Log "Opened YOLO COCO camera $cameraId in a new PowerShell window."
 })
 $tools.Controls.Add($yoloButton)
 
