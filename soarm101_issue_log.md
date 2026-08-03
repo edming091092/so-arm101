@@ -111,6 +111,12 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: wrapper now defaults to `--fps 10`.
    - Fix: wrapper now sets `--robot.disable_torque_on_disconnect=false` by default.
 
+18. Teleoperation still failed at 10 FPS because follower observation read failed.
+   - Error: `Failed to sync read 'Present_Position' ... after 6 tries. [TxRxResult] There is no status packet!`
+   - Context: LeRobot teleop loop reads follower observation before leader action, but its own comment says the observation is not really needed unless visualization/processors use it.
+   - Fix: added `patch_lerobot_skip_optional_observation.py`.
+   - Fix: setup script now applies the optional-observation patch automatically.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

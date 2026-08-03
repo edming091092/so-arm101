@@ -5,6 +5,7 @@ $VenvPath = Join-Path $RepoRoot "work\lerobot_py312"
 $ScriptPath = Join-Path $RepoRoot "soarm101_collab_teleop.py"
 $PatchScript = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
 $RetryPatchScript = Join-Path $RepoRoot "patch_lerobot_so101_retries.py"
+$ObservationPatchScript = Join-Path $RepoRoot "patch_lerobot_skip_optional_observation.py"
 
 function Find-Python312 {
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
@@ -92,6 +93,14 @@ if (Test-Path $RetryPatchScript) {
     & $VenvPython $RetryPatchScript
 } else {
     Write-Host "WARNING: patch_lerobot_so101_retries.py was not found." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "Applying SO-ARM101 optional observation patch..."
+if (Test-Path $ObservationPatchScript) {
+    & $VenvPython $ObservationPatchScript
+} else {
+    Write-Host "WARNING: patch_lerobot_skip_optional_observation.py was not found." -ForegroundColor Yellow
 }
 
 Write-Host ""

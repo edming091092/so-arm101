@@ -37,6 +37,11 @@ Important: every different physical arm set needs its own calibration id. Do not
   - Fixes transient serial errors like `Failed to sync read 'Present_Position' ... after 1 tries`.
   - The setup script runs this automatically.
 
+- `patch_lerobot_skip_optional_observation.py`
+  - Lets teaching teleoperation continue if the optional follower observation read fails.
+  - This is useful because leader-to-follower control can still send leader actions even when follower observation is unavailable.
+  - The setup script runs this automatically.
+
 - `soarm101_issue_log.md`
   - Running log of problems found while setting this up.
 
@@ -70,7 +75,7 @@ cd $env:USERPROFILE\Desktop\so-arm101
 powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 ```
 
-   The setup script also applies local SO-ARM101 patches. These prevent LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`, and add retries for transient serial read failures.
+   The setup script also applies local SO-ARM101 patches. These prevent LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`, add retries for transient serial read failures, and let teleoperation continue if the optional follower observation read fails.
 
 5. Optional: open the teaching UI.
 

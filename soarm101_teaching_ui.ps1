@@ -10,6 +10,7 @@ $SetupScript = Join-Path $RepoRoot "setup_lerobot_windows.ps1"
 $TeleopScript = Join-Path $RepoRoot "soarm101_collab_teleop.py"
 $PatchFeetech = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
 $PatchRetries = Join-Path $RepoRoot "patch_lerobot_so101_retries.py"
+$PatchObservation = Join-Path $RepoRoot "patch_lerobot_skip_optional_observation.py"
 
 function Add-Log {
     param([string]$Message)
@@ -197,6 +198,7 @@ $patchButton.Size = New-Object System.Drawing.Size(120, 34)
 $patchButton.Add_Click({
     Run-Capture $PythonExe @($PatchFeetech)
     Run-Capture $PythonExe @($PatchRetries)
+    Run-Capture $PythonExe @($PatchObservation)
 })
 $tools.Controls.Add($patchButton)
 
