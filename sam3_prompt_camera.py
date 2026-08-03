@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--height", type=int, default=480, help="Camera height.")
     parser.add_argument("--fps", type=int, default=15, help="Camera FPS.")
     parser.add_argument("--every", type=float, default=0.8, help="Seconds between SAM3 inference calls.")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto", help="Inference device.")
     return parser.parse_args()
 
 
@@ -81,6 +82,17 @@ def require_sam3_predictor():
     return SAM3SemanticPredictor
 
 
+def resolve_device(requested: str) -> str:
+    if requested != "auto":
+        return requested
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def open_camera(index: int, width: int, height: int, fps: int) -> cv2.VideoCapture:
     cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
     if not cap.isOpened():
@@ -95,16 +107,18 @@ def open_camera(index: int, width: int, height: int, fps: int) -> cv2.VideoCaptu
 
 
 class Sam3Detector:
-    def __init__(self, model_path: Path, conf: float) -> None:
+    def __init__(self, model_path: Path, conf: float, device: str) -> None:
         SAM3SemanticPredictor = require_sam3_predictor()
         self.model_path = model_path
         self.conf = conf
+        self.device = device
         self.predictor = SAM3SemanticPredictor(
             overrides=dict(
                 model=str(model_path),
                 task="segment",
                 mode="predict",
                 conf=conf,
+                device=device,
                 save=False,
                 verbose=False,
             )
@@ -197,7 +211,8 @@ class Sam3PromptApp:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         self.model_path = resolve_model(args.model)
-        self.detector = Sam3Detector(self.model_path, args.conf)
+        self.device = resolve_device(args.device)
+        self.detector = Sam3Detector(self.model_path, args.conf, self.device)
         self.cap = open_camera(args.camera, args.width, args.height, args.fps)
 
         self.root = tk.Tk()
@@ -217,7 +232,7 @@ class Sam3PromptApp:
 
         self.prompt_var = tk.StringVar(value=args.prompt)
         self.conf_var = tk.StringVar(value=f"{args.conf:.2f}")
-        self.status_var = tk.StringVar(value=f"Model: {self.model_path}")
+        self.status_var = tk.StringVar(value=f"Device: {self.device}\nModel: {self.model_path}")
 
         self.video_label = tk.Label(self.root, bg="#111827")
         self.video_label.place(x=20, y=20, width=700, height=525)

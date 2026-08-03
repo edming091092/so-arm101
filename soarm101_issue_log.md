@@ -146,6 +146,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `start_sam3_prompt_camera.bat`.
    - Fix: teaching UI now includes SAM3 prompt, confidence, and launch controls.
 
+24. Runtime device requested: choose CPU or GPU.
+   - Problem: current environment had CPU-only PyTorch, so YOLO/SAM3 could not use GPU.
+   - Fix: added `setup_pytorch_device.ps1` to install CPU or NVIDIA CUDA PyTorch.
+   - Fix: YOLO and SAM3 scripts now accept `--device auto`, `--device cpu`, and `--device cuda`.
+   - Fix: teaching UI now has a shared `Device` selector.
+   - Fix: YOLO/SAM3 setup scripts accept `-Device auto`, `-Device cpu`, and `-Device cuda`.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

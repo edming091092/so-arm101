@@ -53,11 +53,17 @@ Important: every different physical arm set needs its own calibration id. Do not
 
 - `setup_yolo_coco.ps1`
   - Installs YOLO COCO camera dependencies.
+  - Accepts `-Device auto`, `-Device cpu`, or `-Device cuda`.
   - Uses pretrained COCO models, no custom training dataset required.
+
+- `setup_pytorch_device.ps1`
+  - Installs the matching PyTorch runtime for CPU or NVIDIA CUDA GPU.
+  - `auto` uses CUDA when `nvidia-smi` detects an NVIDIA GPU; otherwise it uses CPU.
 
 - `yolo_coco_camera.py`
   - Opens a camera and detects common COCO objects in real time.
   - Shows boxes on the camera image and a detected-object list.
+  - Accepts `--device auto`, `--device cpu`, or `--device cuda`.
 
 - `start_yolo_coco_camera.bat`
   - Starts the YOLO COCO camera demo.
@@ -65,15 +71,17 @@ Important: every different physical arm set needs its own calibration id. Do not
 
 - `setup_sam3.ps1`
   - Installs SAM3 dependencies.
+  - Accepts `-Device auto`, `-Device cpu`, or `-Device cuda`.
   - Copies `sam3.pt` into `models\sam3.pt` when it can find the model on this computer.
 
 - `sam3_prompt_camera.py`
   - Opens a camera and runs SAM3 prompt-based segmentation.
   - Prompt and confidence can be changed while the window is open.
+  - Accepts `--device auto`, `--device cpu`, or `--device cuda`.
 
 - `start_sam3_prompt_camera.bat`
   - Starts the SAM3 prompt camera demo.
-  - Arguments: camera id, prompt, confidence.
+  - Arguments: camera id, prompt, confidence, device.
 
 ## New Computer Setup
 
@@ -201,17 +209,23 @@ cd $env:USERPROFILE\Desktop\so-arm101
 powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1
 ```
 
+   GPU install example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1 -Device cuda
+```
+
 2. Start the camera demo.
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0 --device auto
 ```
 
    Or use the bat launcher:
 
 ```powershell
 .\start_yolo_coco_camera.bat 0
-.\start_yolo_coco_camera.bat 1
+.\start_yolo_coco_camera.bat 1 cuda
 .\start_yolo_coco_camera.bat 2
 ```
 
@@ -225,10 +239,13 @@ powershell -ExecutionPolicy Bypass -File .\setup_yolo_coco.ps1
 4. Useful options.
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0 --conf 0.45 --zh-labels
+& ".\work\lerobot_py312\Scripts\python.exe" ".\yolo_coco_camera.py" --camera 0 --conf 0.45 --device cuda --zh-labels
 ```
 
 - `--conf` controls confidence threshold.
+- `--device auto` chooses GPU when CUDA is available, otherwise CPU.
+- `--device cuda` uses NVIDIA GPU. If PyTorch CUDA is not installed, run setup with `-Device cuda` first.
+- `--device cpu` forces CPU.
 - `--zh-labels` shows Chinese labels in the side list.
 - `--model yolo11n.pt` is the default lightweight COCO model.
 - Press `Q` or close the window to stop.
@@ -244,10 +261,16 @@ cd $env:USERPROFILE\Desktop\so-arm101
 powershell -ExecutionPolicy Bypass -File .\setup_sam3.ps1
 ```
 
+   GPU install example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup_sam3.ps1 -Device cuda
+```
+
 2. Start SAM3 with a prompt.
 
 ```powershell
-& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup" --conf 0.25
+& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup" --conf 0.25 --device auto
 ```
 
 3. If the wrong camera opens, change camera id.
@@ -265,10 +288,13 @@ powershell -ExecutionPolicy Bypass -File .\setup_sam3.ps1
 5. Bat launcher examples.
 
 ```powershell
-.\start_sam3_prompt_camera.bat 0 cup 0.25
-.\start_sam3_prompt_camera.bat 1 bottle 0.30
+.\start_sam3_prompt_camera.bat 0 cup 0.25 auto
+.\start_sam3_prompt_camera.bat 1 bottle 0.30 cuda
 ```
 
 - `Prompt` tells SAM3 what object to segment.
 - `Conf` controls detection confidence. Lower values find more objects but can include mistakes.
+- `--device auto` chooses GPU when CUDA is available, otherwise CPU.
+- `--device cuda` uses NVIDIA GPU. If PyTorch CUDA is not installed, run setup with `-Device cuda` first.
+- `--device cpu` forces CPU.
 - Press `Q` or close the window to stop.

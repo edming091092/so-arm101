@@ -1,7 +1,13 @@
+param(
+    [ValidateSet("auto", "cpu", "gpu", "cuda")]
+    [string]$Device = "auto"
+)
+
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $VenvPython = Join-Path $RepoRoot "work\lerobot_py312\Scripts\python.exe"
+$TorchSetupScript = Join-Path $RepoRoot "setup_pytorch_device.ps1"
 $ModelsDir = Join-Path $RepoRoot "models"
 $TargetModel = Join-Path $ModelsDir "sam3.pt"
 
@@ -16,6 +22,7 @@ Write-Host "Installing SAM3 dependencies into:"
 Write-Host $VenvPython
 Write-Host ""
 
+& $TorchSetupScript -Device $Device
 & $VenvPython -m pip install --upgrade ultralytics pillow
 
 New-Item -ItemType Directory -Force -Path $ModelsDir | Out-Null
@@ -54,4 +61,4 @@ if (Test-Path $TargetModel) {
 Write-Host ""
 Write-Host "SAM3 setup complete."
 Write-Host "Run:"
-Write-Host '& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup" --conf 0.25'
+Write-Host '& ".\work\lerobot_py312\Scripts\python.exe" ".\sam3_prompt_camera.py" --camera 0 --prompt "cup" --conf 0.25 --device auto'

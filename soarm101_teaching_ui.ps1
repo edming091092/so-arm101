@@ -226,10 +226,26 @@ $cameraBox.Location = New-Object System.Drawing.Point(430, 45)
 $cameraBox.Size = New-Object System.Drawing.Size(45, 28)
 $tools.Controls.Add($cameraBox)
 
+$deviceLabel = New-Object System.Windows.Forms.Label
+$deviceLabel.Text = "Device"
+$deviceLabel.Location = New-Object System.Drawing.Point(490, 20)
+$deviceLabel.AutoSize = $true
+$tools.Controls.Add($deviceLabel)
+
+$deviceBox = New-Object System.Windows.Forms.ComboBox
+$deviceBox.DropDownStyle = "DropDownList"
+[void]$deviceBox.Items.Add("auto")
+[void]$deviceBox.Items.Add("cpu")
+[void]$deviceBox.Items.Add("cuda")
+$deviceBox.SelectedIndex = 0
+$deviceBox.Location = New-Object System.Drawing.Point(490, 45)
+$deviceBox.Size = New-Object System.Drawing.Size(80, 28)
+$tools.Controls.Add($deviceBox)
+
 $yoloButton = New-Object System.Windows.Forms.Button
 $yoloButton.Text = "YOLO COCO"
-$yoloButton.Location = New-Object System.Drawing.Point(490, 42)
-$yoloButton.Size = New-Object System.Drawing.Size(145, 34)
+$yoloButton.Location = New-Object System.Drawing.Point(585, 42)
+$yoloButton.Size = New-Object System.Drawing.Size(105, 34)
 $yoloButton.Add_Click({
     if (-not (Test-Path $PythonExe)) {
         [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
@@ -241,9 +257,10 @@ $yoloButton.Add_Click({
     }
     $cameraId = $cameraBox.Text.Trim()
     if (-not $cameraId) { $cameraId = "0" }
-    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"import ultralytics`"; if (`$LASTEXITCODE -ne 0) { & `"$YoloSetupScript`" }; & `"$PythonExe`" `"$YoloCameraScript`" --camera $cameraId"
+    $device = $deviceBox.SelectedItem.ToString()
+    $command = "cd `"$RepoRoot`"; & `"$YoloSetupScript`" -Device $device; & `"$PythonExe`" `"$YoloCameraScript`" --camera $cameraId --device $device"
     Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
-    Add-Log "Opened YOLO COCO camera $cameraId in a new PowerShell window."
+    Add-Log "Opened YOLO COCO camera $cameraId on $device in a new PowerShell window."
 })
 $tools.Controls.Add($yoloButton)
 
@@ -273,8 +290,8 @@ $tools.Controls.Add($confBox)
 
 $sam3Button = New-Object System.Windows.Forms.Button
 $sam3Button.Text = "SAM3"
-$sam3Button.Location = New-Object System.Drawing.Point(490, 89)
-$sam3Button.Size = New-Object System.Drawing.Size(145, 34)
+$sam3Button.Location = New-Object System.Drawing.Point(585, 89)
+$sam3Button.Size = New-Object System.Drawing.Size(105, 34)
 $sam3Button.Add_Click({
     if (-not (Test-Path $PythonExe)) {
         [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
@@ -291,9 +308,10 @@ $sam3Button.Add_Click({
     $conf = $confBox.Text.Trim()
     if (-not $conf) { $conf = "0.25" }
     $safePrompt = $prompt.Replace('"', '')
-    $command = "cd `"$RepoRoot`"; & `"$PythonExe`" -c `"from ultralytics.models.sam import SAM3SemanticPredictor`"; if (`$LASTEXITCODE -ne 0) { & `"$Sam3SetupScript`" }; & `"$PythonExe`" `"$Sam3CameraScript`" --camera $cameraId --prompt `"$safePrompt`" --conf $conf"
+    $device = $deviceBox.SelectedItem.ToString()
+    $command = "cd `"$RepoRoot`"; & `"$Sam3SetupScript`" -Device $device; & `"$PythonExe`" `"$Sam3CameraScript`" --camera $cameraId --prompt `"$safePrompt`" --conf $conf --device $device"
     Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
-    Add-Log "Opened SAM3 camera $cameraId prompt '$safePrompt' conf $conf in a new PowerShell window."
+    Add-Log "Opened SAM3 camera $cameraId prompt '$safePrompt' conf $conf on $device in a new PowerShell window."
 })
 $tools.Controls.Add($sam3Button)
 

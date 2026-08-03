@@ -111,6 +111,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--width", type=int, default=640, help="Camera width.")
     parser.add_argument("--height", type=int, default=480, help="Camera height.")
     parser.add_argument("--interval", type=int, default=2, help="Run YOLO every N frames.")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto", help="Inference device.")
     parser.add_argument("--zh-labels", action="store_true", help="Show Chinese labels in the side list.")
     return parser.parse_args()
 
@@ -125,6 +126,17 @@ def require_ultralytics():
         raise SystemExit(1) from exc
 
     return YOLO
+
+
+def resolve_device(requested: str) -> str:
+    if requested != "auto":
+        return requested
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
 
 
 class YoloCocoApp:
@@ -147,6 +159,7 @@ class YoloCocoApp:
 
         YOLO = require_ultralytics()
         self.model = YOLO(args.model)
+        self.device = resolve_device(args.device)
 
         self.cap = cv2.VideoCapture(args.camera, cv2.CAP_DSHOW)
         if not self.cap.isOpened():
@@ -166,7 +179,7 @@ class YoloCocoApp:
         )
         title.place(x=745, y=24)
 
-        self.status = tk.StringVar(value="Starting camera...")
+        self.status = tk.StringVar(value=f"Starting camera on {self.device}...")
         status_label = tk.Label(self.root, textvariable=self.status, bg="#f5f7fb", fg="#4b5563", anchor="w")
         status_label.place(x=748, y=62, width=210, height=24)
 
@@ -189,7 +202,7 @@ class YoloCocoApp:
         return f"{class_name} {conf:.2f}"
 
     def detect(self, frame):
-        results = self.model.predict(frame, conf=self.args.conf, verbose=False)
+        results = self.model.predict(frame, conf=self.args.conf, device=self.device, verbose=False)
         result = results[0]
         annotated = result.plot()
 
