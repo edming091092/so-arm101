@@ -153,6 +153,15 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: teaching UI now has a shared `Device` selector.
    - Fix: YOLO/SAM3 setup scripts accept `-Device auto`, `-Device cpu`, and `-Device cuda`.
 
+25. Step 4 requested: camera coordinate to arm movement.
+   - Goal: click an object in the camera image and move the arm to that position.
+   - Design: use planar tabletop calibration instead of assuming camera pixels are already world coordinates.
+   - Fix: added `camera_world_click_move.py`.
+   - Fix: added `setup_world_click_move.ps1`.
+   - Fix: added `start_camera_world_click_move.bat`.
+   - Fix: teaching UI now includes a `World click` launch button.
+   - Safety: the click-move tool starts in dry-run mode and requires at least 4 calibration points before movement.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

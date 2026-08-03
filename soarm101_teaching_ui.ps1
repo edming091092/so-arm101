@@ -11,6 +11,8 @@ $YoloSetupScript = Join-Path $RepoRoot "setup_yolo_coco.ps1"
 $YoloCameraScript = Join-Path $RepoRoot "yolo_coco_camera.py"
 $Sam3SetupScript = Join-Path $RepoRoot "setup_sam3.ps1"
 $Sam3CameraScript = Join-Path $RepoRoot "sam3_prompt_camera.py"
+$WorldClickSetupScript = Join-Path $RepoRoot "setup_world_click_move.ps1"
+$WorldClickScript = Join-Path $RepoRoot "camera_world_click_move.py"
 $TeleopScript = Join-Path $RepoRoot "soarm101_collab_teleop.py"
 $SmoothTeleopScript = Join-Path $RepoRoot "soarm101_smooth_direct_teleop.py"
 $PatchFeetech = Join-Path $RepoRoot "patch_lerobot_feetech_limits.py"
@@ -209,8 +211,8 @@ $tools.Controls.Add($patchButton)
 
 $readmeButton = New-Object System.Windows.Forms.Button
 $readmeButton.Text = "Open README"
-$readmeButton.Location = New-Object System.Drawing.Point(660, 42)
-$readmeButton.Size = New-Object System.Drawing.Size(120, 34)
+$readmeButton.Location = New-Object System.Drawing.Point(700, 42)
+$readmeButton.Size = New-Object System.Drawing.Size(90, 34)
 $readmeButton.Add_Click({ Start-Process (Join-Path $RepoRoot "README.md") })
 $tools.Controls.Add($readmeButton)
 
@@ -314,6 +316,31 @@ $sam3Button.Add_Click({
     Add-Log "Opened SAM3 camera $cameraId prompt '$safePrompt' conf $conf on $device in a new PowerShell window."
 })
 $tools.Controls.Add($sam3Button)
+
+$worldButton = New-Object System.Windows.Forms.Button
+$worldButton.Text = "World click"
+$worldButton.Location = New-Object System.Drawing.Point(700, 89)
+$worldButton.Size = New-Object System.Drawing.Size(90, 34)
+$worldButton.Add_Click({
+    if (-not (Test-Path $PythonExe)) {
+        [System.Windows.Forms.MessageBox]::Show("Run setup first. Python environment was not found.", "Setup needed")
+        return
+    }
+    if (-not (Test-Path $WorldClickScript)) {
+        [System.Windows.Forms.MessageBox]::Show("Missing camera_world_click_move.py.", "Missing file")
+        return
+    }
+    $cameraId = $cameraBox.Text.Trim()
+    if (-not $cameraId) { $cameraId = "0" }
+    $armSet = $armSetBox.Text.Trim()
+    if (-not $armSet) { $armSet = "lab01" }
+    $follower = $followerBox.Text.Trim()
+    $leader = $leaderBox.Text.Trim()
+    $command = "cd `"$RepoRoot`"; & `"$WorldClickSetupScript`"; & `"$PythonExe`" `"$WorldClickScript`" --arm-set-id $armSet --follower-port $follower --leader-port $leader --camera $cameraId"
+    Start-Process powershell.exe -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $command
+    Add-Log "Opened world click move for $armSet camera $cameraId in a new PowerShell window."
+})
+$tools.Controls.Add($worldButton)
 
 $note = New-Object System.Windows.Forms.Label
 $note.Text = "Calibration: first run for a new arm set may ask you to move joints. Move slowly and never force the joints."

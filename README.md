@@ -83,6 +83,17 @@ Important: every different physical arm set needs its own calibration id. Do not
   - Starts the SAM3 prompt camera demo.
   - Arguments: camera id, prompt, confidence, device.
 
+- `setup_world_click_move.ps1`
+  - Installs dependencies for camera pixel to world coordinate click-to-move.
+
+- `camera_world_click_move.py`
+  - Opens a camera, records planar calibration points, and lets you click the camera image to move the follower arm.
+  - Uses calibration points to map image pixel -> tabletop world X/Y mm -> follower action.
+
+- `start_camera_world_click_move.bat`
+  - Starts the camera-world click-to-move tool.
+  - Arguments: arm set id, follower COM, leader COM, camera id.
+
 ## New Computer Setup
 
 1. Install Python 3.12.
@@ -298,3 +309,69 @@ powershell -ExecutionPolicy Bypass -File .\setup_sam3.ps1 -Device cuda
 - `--device cuda` uses NVIDIA GPU. If PyTorch CUDA is not installed, run setup with `-Device cuda` first.
 - `--device cpu` forces CPU.
 - Press `Q` or close the window to stop.
+
+## Step 4: Camera World Click Move
+
+Goal: click an object in the camera image and let the arm move to that tabletop position.
+
+This step uses a planar tabletop calibration. The program does not know real world coordinates by magic. You teach it a small map:
+
+```text
+camera pixel -> tabletop world X/Y in millimeters -> follower joint action
+```
+
+The recommended teaching coordinate system is:
+
+```text
+world origin = arm base center, or a marked point on the table
+X/Y = tabletop millimeters
+Z = fixed by the height/posture used during calibration
+```
+
+1. Install dependencies.
+
+```powershell
+cd $env:USERPROFILE\Desktop\so-arm101
+powershell -ExecutionPolicy Bypass -File .\setup_world_click_move.ps1
+```
+
+2. Start the tool.
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\camera_world_click_move.py" --arm-set-id lab01 --follower-port COM5 --leader-port COM4 --camera 0
+```
+
+   Or use the bat launcher:
+
+```powershell
+.\start_camera_world_click_move.bat lab01 COM5 COM4 0
+```
+
+3. Record at least 4 calibration points.
+
+- Click a visible point on the table in the camera image.
+- Enter that point's `World X mm` and `World Y mm`.
+- Move the gripper tip to the same physical point.
+- Press `Record calibration point`.
+- Repeat around the workspace. More points usually improves accuracy.
+
+4. Test in dry run.
+
+- Leave `Dry run` checked.
+- Click a target object.
+- Press `Move selected`.
+- The program should show the estimated world coordinate without moving the arm.
+
+5. Move for real.
+
+- Clear the workspace.
+- Uncheck `Dry run`.
+- Click the target object.
+- Press `Move selected`.
+
+Notes:
+
+- This first version controls tabletop X/Y by calibration point interpolation. It does not estimate object height.
+- The gripper Z height and wrist posture come from the calibration actions you record.
+- Use a unique `arm-set-id` and calibration file for every different arm/table/camera setup.
+- The calibration file is saved under `calibration\<arm-set-id>_camera_world.json`.
