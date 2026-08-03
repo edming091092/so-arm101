@@ -66,6 +66,13 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Result: `Unrecognized command or argument 'https://github.com'.`
    - Correct cleanup approach: pipe a credential record into `git credential-manager erase`, or remove the GitHub entry from Windows Credential Manager.
 
+11. Teleoperation found LeRobot but leader calibration failed with a negative limit.
+   - Error: `ValueError: Negative values are not allowed: -165`
+   - Context: the script used default ids `my_awesome_follower_arm` and `my_awesome_leader_arm`.
+   - Local calibration files already existed as `my_follower.json` and `my_leader.json`.
+   - Likely cause: LeRobot could not find calibration files for the `my_awesome_*` ids, so it started a fresh calibration and computed an invalid negative motor position limit.
+   - Fix: default calibration ids changed to `my_follower` and `my_leader`.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

@@ -125,8 +125,8 @@ def main() -> int:
     )
     parser.add_argument("--follower-port", help="Follower arm USB port, e.g. COM4")
     parser.add_argument("--leader-port", help="Leader arm USB port, e.g. COM5")
-    parser.add_argument("--follower-id", default="my_awesome_follower_arm", help="Calibration id for follower arm")
-    parser.add_argument("--leader-id", default="my_awesome_leader_arm", help="Calibration id for leader arm")
+    parser.add_argument("--follower-id", default="my_follower", help="Calibration id for follower arm")
+    parser.add_argument("--leader-id", default="my_leader", help="Calibration id for leader arm")
     parser.add_argument("--no-countdown", action="store_true", help="Skip safety countdown")
 
     args, passthrough = parser.parse_known_args()

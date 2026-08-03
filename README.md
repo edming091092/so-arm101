@@ -73,6 +73,13 @@ powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 & ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --follower-port COM5 --leader-port COM4
 ```
 
+   The script defaults to calibration ids `my_follower` and `my_leader`.
+   If your calibration uses different ids, pass them explicitly:
+
+```powershell
+& ".\work\lerobot_py312\Scripts\python.exe" ".\soarm101_collab_teleop.py" --follower-port COM4 --leader-port COM5 --follower-id my_follower --leader-id my_leader
+```
+
 ## Notes
 
 - The follower arm is the robot arm that moves.
