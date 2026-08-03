@@ -87,6 +87,11 @@ Prepare a small GitHub repo that can be downloaded on a new Windows computer to 
    - Fix: added `patch_lerobot_feetech_limits.py`.
    - Fix: setup script now applies the patch automatically after installing LeRobot.
 
+14. First calibration also failed while writing Feetech homing offsets.
+   - Error: `ValueError: Magnitude 4021 exceeds 2047 (max for sign_bit_index=11)`.
+   - Cause: LeRobot computed `Homing_Offset = Present_Position - 2047`, but some Feetech raw positions can be outside a single 0..4095 turn during calibration.
+   - Fix: updated `patch_lerobot_feetech_limits.py` to normalize homing positions modulo 4096 before computing the offset, then clamp the offset to the writable range.
+
 ## Remaining Hardware Requirements
 
 - Python 3.12 must be installed on each new computer.

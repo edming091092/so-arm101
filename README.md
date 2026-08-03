@@ -18,8 +18,10 @@ Important: every different physical arm set needs its own calibration id. Do not
   - Requires `--arm-set-id` so different arm sets do not share calibration by accident.
 
 - `patch_lerobot_feetech_limits.py`
-  - Patches LeRobot's Feetech calibration writer so out-of-range values are clamped to `0..4095`.
-  - Fixes calibration failures like `Negative values are not allowed: -163`.
+  - Patches LeRobot's Feetech calibration code for SO-ARM101/SO-101.
+  - Clamps position-limit values to `0..4095`.
+  - Normalizes homing positions before writing `Homing_Offset`.
+  - Fixes calibration failures like `Negative values are not allowed: -163` and `Magnitude 4021 exceeds 2047`.
   - The setup script runs this automatically.
 
 - `soarm101_issue_log.md`
@@ -55,7 +57,7 @@ cd $env:USERPROFILE\Desktop\so-arm101
 powershell -ExecutionPolicy Bypass -File .\setup_lerobot_windows.ps1
 ```
 
-   The setup script also applies the Feetech calibration patch. This prevents LeRobot from crashing if first-time calibration records a range such as `-163` or `4380`.
+   The setup script also applies the Feetech calibration patch. This prevents LeRobot from crashing if first-time calibration records a range such as `-163`, `4380`, or a homing offset magnitude above `2047`.
 
 5. Connect both SO-ARM101 arms.
 

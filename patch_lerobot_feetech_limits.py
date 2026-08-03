@@ -20,7 +20,8 @@ import sys
 from pathlib import Path
 
 
-PATCH_MARKER = "# SO-ARM101 local patch: clamp Feetech position limits"
+LIMIT_PATCH_MARKER = "# SO-ARM101 local patch: clamp Feetech position limits"
+HOMING_PATCH_MARKER = "# SO-ARM101 local patch: normalize Feetech homing positions"
 
 ORIGINAL = '''    def write_calibration(self, calibration_dict: dict[str, MotorCalibration], cache: bool = True) -> None:
         for motor, calibration in calibration_dict.items():
@@ -59,6 +60,47 @@ PATCHED = '''    def write_calibration(self, calibration_dict: dict[str, MotorCa
             self.calibration = calibration_dict
 '''
 
+ORIGINAL_HOMING = '''    def _get_half_turn_homings(self, positions: dict[NameOrID, Value]) -> dict[NameOrID, Value]:
+        """
+        On Feetech Motors:
+        Present_Position = Actual_Position - Homing_Offset
+        """
+        half_turn_homings: dict[NameOrID, Value] = {}
+        for motor, pos in positions.items():
+            model = self._get_motor_model(motor)
+            max_res = self.model_resolution_table[model] - 1
+            half_turn_homings[motor] = pos - int(max_res / 2)
+
+        return half_turn_homings
+'''
+
+PATCHED_HOMING = '''    def _get_half_turn_homings(self, positions: dict[NameOrID, Value]) -> dict[NameOrID, Value]:
+        """
+        On Feetech Motors:
+        Present_Position = Actual_Position - Homing_Offset
+        """
+        # SO-ARM101 local patch: normalize Feetech homing positions
+        half_turn_homings: dict[NameOrID, Value] = {}
+        for motor, pos in positions.items():
+            model = self._get_motor_model(motor)
+            max_res = self.model_resolution_table[model] - 1
+            resolution = max_res + 1
+            normalized_pos = int(pos) % resolution
+            offset = normalized_pos - int(max_res / 2)
+            max_offset = int(max_res / 2)
+            offset = max(-max_offset, min(max_offset, offset))
+
+            if normalized_pos != int(pos):
+                print(
+                    f"Normalized {motor} homing position from {int(pos)} "
+                    f"to {normalized_pos}; homing offset {offset}"
+                )
+
+            half_turn_homings[motor] = offset
+
+        return half_turn_homings
+'''
+
 
 def find_feetech_path() -> Path:
     spec = importlib.util.find_spec("lerobot.motors.feetech.feetech")
@@ -71,20 +113,37 @@ def main() -> int:
     feetech_path = find_feetech_path()
     text = feetech_path.read_text(encoding="utf-8")
 
-    if PATCH_MARKER in text:
-        print(f"Already patched: {feetech_path}")
-        return 0
-
-    if ORIGINAL not in text:
-        print(f"ERROR: expected write_calibration block was not found in {feetech_path}")
-        print("LeRobot may have changed. Patch not applied.")
-        return 1
-
     backup_path = feetech_path.with_suffix(feetech_path.suffix + ".soarm101.bak")
     if not backup_path.exists():
         shutil.copy2(feetech_path, backup_path)
 
-    feetech_path.write_text(text.replace(ORIGINAL, PATCHED), encoding="utf-8")
+    changed = False
+
+    if LIMIT_PATCH_MARKER in text:
+        print("Position-limit patch already applied.")
+    elif ORIGINAL in text:
+        text = text.replace(ORIGINAL, PATCHED)
+        changed = True
+        print("Applied position-limit patch.")
+    else:
+        print("ERROR: expected write_calibration block was not found.")
+        print("LeRobot may have changed. Position-limit patch not applied.")
+        return 1
+
+    if HOMING_PATCH_MARKER in text:
+        print("Homing-position patch already applied.")
+    elif ORIGINAL_HOMING in text:
+        text = text.replace(ORIGINAL_HOMING, PATCHED_HOMING)
+        changed = True
+        print("Applied homing-position patch.")
+    else:
+        print("ERROR: expected _get_half_turn_homings block was not found.")
+        print("LeRobot may have changed. Homing-position patch not applied.")
+        return 1
+
+    if changed:
+        feetech_path.write_text(text, encoding="utf-8")
+
     print(f"Patched: {feetech_path}")
     print(f"Backup:  {backup_path}")
     return 0
